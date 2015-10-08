@@ -201,13 +201,15 @@ class FormBuilder
    */
   public function label($name, $value = null, $options = [])
   {
-      $this->labels[] = $name;
+    $id = $this->getIdAttribute($name, $options);
 
-      $options = $this->html->attributes($options);
+    $this->labels[] = $id;
 
-      $value = e($this->formatLabel($name, $value));
+    $options = $this->html->attributes($options);
 
-      return '<label for="'.$name.'"'.$options.'>'.$value.'</label>';
+    $value = e($this->formatLabel($name, $value));
+
+    return '<label for="'.$id.'"'.$options.'>'.$value.'</label>';
   }
 
   /**
@@ -235,14 +237,15 @@ class FormBuilder
    */
   public function input($type, $name, $value = null, $options = [])
   {
+      $id = $this->getIdAttribute($name, $options);
+
       if (!isset($options['name'])) {
-          $options['name'] = $name;
+          $options['name'] = $id;
       }
 
     // We will get the appropriate value for the given field. We will look for the
     // value in the session for the value in the old input data then we'll look
     // in the model instance if one is set. Otherwise we will just use empty.
-    $id = $this->getIdAttribute($name, $options);
 
       if (!in_array($type, $this->skipValueTypes)) {
           $value = $this->getValueAttribute($name, $value);
@@ -1000,6 +1003,8 @@ class FormBuilder
       if (in_array($name, $this->labels)) {
           return $name;
       }
+
+      return last(explode('.', $name));
   }
 
   /**
@@ -1038,7 +1043,7 @@ class FormBuilder
    */
   protected function getModelValueAttribute($name)
   {
-      return data_get($this->model, $this->transformKey($name));
+      return data_get($this->model, $name);
   }
 
   /**
@@ -1074,7 +1079,7 @@ class FormBuilder
    */
   protected function transformKey($key)
   {
-      return str_replace(['.', '[]', '[', ']'], ['_', '', '.', ''], $key);
+      return last(explode('.', $key));
   }
 
   /**
